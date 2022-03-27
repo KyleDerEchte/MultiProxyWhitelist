@@ -1,0 +1,7 @@
+name: MultiProxyWhitelist
+main: de.kyleonaut.multiproxywhitelist.BungeeWhitelistPlugin
+version: 1.0.0
+author: kyleonaut
+commands:
+  bwhitelist:
+    permission: bwhitelist.command

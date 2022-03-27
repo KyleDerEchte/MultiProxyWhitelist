@@ -36,7 +36,7 @@ public class DatabaseManager {
 
     private Connection createConnection() {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager.getConnection(this.url, this.host, this.password);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();

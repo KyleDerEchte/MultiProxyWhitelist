@@ -7,9 +7,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author kyleonaut
@@ -35,7 +35,7 @@ public class WhitelistRepository {
             @Cleanup final PreparedStatement ps = this.connection.prepareStatement(
                     "SELECT * FROM players WHERE isWhitelisted = 1;"
             );
-            final List<PlayerModel> playerModels = new ArrayList<>();
+            final List<PlayerModel> playerModels = new CopyOnWriteArrayList<>();
             @Cleanup final ResultSet resultSet = ps.executeQuery();
             while (resultSet.next()) {
                 final PlayerModel playerModel = new PlayerModel();
