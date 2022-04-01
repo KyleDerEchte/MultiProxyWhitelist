@@ -52,13 +52,15 @@ public class WhitelistCommand extends Command {
                 sendHelp(commandSender);
                 return;
             }
-            whitelistService.addPlayer(args[1], (wasAdded, playerProfile) -> {
-                if (!wasAdded) {
-                    commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §cThe provided player couldn't be added."));
-                    return;
-                }
-                commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §7The player §6" + playerProfile.getName() + "§7 was added to the whitelist."));
-            });
+            new Thread(() -> {
+                whitelistService.addPlayer(args[1], (wasAdded, playerProfile) -> {
+                    if (!wasAdded) {
+                        commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §cThe provided player couldn't be added."));
+                        return;
+                    }
+                    commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §7The player §6" + playerProfile.getName() + "§7 was added to the whitelist."));
+                });
+            }).start();
             return;
         }
         if (args[0].equalsIgnoreCase("remove")) {
@@ -66,13 +68,15 @@ public class WhitelistCommand extends Command {
                 sendHelp(commandSender);
                 return;
             }
-            whitelistService.removePlayer(args[1], (wasAdded, playerProfile) -> {
-                if (!wasAdded) {
-                    commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §cThe provided player couldn't be found."));
-                    return;
-                }
-                commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §7The player §6" + playerProfile.getName() + "§7 was removed from the whitelist."));
-            });
+            new Thread(() -> {
+                whitelistService.removePlayer(args[1], (wasAdded, playerProfile) -> {
+                    if (!wasAdded) {
+                        commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §cThe provided player couldn't be found."));
+                        return;
+                    }
+                    commandSender.sendMessage(new TextComponent("§7[§6MultiProxyWhitelist§7] §7The player §6" + playerProfile.getName() + "§7 was removed from the whitelist."));
+                });
+            }).start();
             return;
         }
         if (args[0].equalsIgnoreCase("on")) {

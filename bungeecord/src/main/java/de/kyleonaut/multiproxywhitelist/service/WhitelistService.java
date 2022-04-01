@@ -1,5 +1,6 @@
 package de.kyleonaut.multiproxywhitelist.service;
 
+import de.kyleonaut.multiproxywhitelist.BungeeWhitelistPlugin;
 import de.kyleonaut.multiproxywhitelist.manager.JedisManager;
 import de.kyleonaut.multiproxywhitelist.model.PlayerModel;
 import de.kyleonaut.multiproxywhitelist.model.PlayerProfile;
@@ -43,34 +44,38 @@ public class WhitelistService {
     }
 
     public void addPlayer(String name, BiConsumer<Boolean, PlayerProfile> booleanPlayerProfileBiConsumer) {
-        final PlayerProfile playerProfile = mojangService.getPlayerProfile(name);
-        if (playerProfile == null) {
-            booleanPlayerProfileBiConsumer.accept(false, null);
-            return;
-        }
-        if (this.isWhitelisted(playerProfile.getUUID())) {
-            booleanPlayerProfileBiConsumer.accept(false, null);
-            return;
-        }
-        whitelistRepository.addPlayerToWhitelist(playerProfile.toPlayerModel());
-        this.whitelistedPlayers.add(playerProfile.toPlayerModel());
-        booleanPlayerProfileBiConsumer.accept(true, playerProfile);
-        jedisManager.publish("MULTI_PROXY_WHITELIST:ADD_PLAYER", playerProfile.toPlayerModel().toJson());
+        BungeeWhitelistPlugin.getRequestExecutor().execute(() -> {
+            final PlayerProfile playerProfile = mojangService.getPlayerProfile(name);
+            if (playerProfile == null) {
+                booleanPlayerProfileBiConsumer.accept(false, null);
+                return;
+            }
+            if (this.isWhitelisted(playerProfile.getUUID())) {
+                booleanPlayerProfileBiConsumer.accept(false, null);
+                return;
+            }
+            whitelistRepository.addPlayerToWhitelist(playerProfile.toPlayerModel());
+            this.whitelistedPlayers.add(playerProfile.toPlayerModel());
+            jedisManager.publish("MULTI_PROXY_WHITELIST:ADD_PLAYER", playerProfile.toPlayerModel().toJson(), false);
+            booleanPlayerProfileBiConsumer.accept(true, playerProfile);
+        });
     }
 
     public void removePlayer(String name, BiConsumer<Boolean, PlayerProfile> booleanPlayerProfileBiConsumer) {
-        final PlayerProfile playerProfile = mojangService.getPlayerProfile(name);
-        if (playerProfile == null) {
-            booleanPlayerProfileBiConsumer.accept(false, null);
-            return;
-        }
-        whitelistRepository.removePlayerFromWhitelist(playerProfile.toPlayerModel());
-        jedisManager.publish("MULTI_PROXY_WHITELIST:REMOVE_PLAYER", playerProfile.toPlayerModel().toJson());
-        final Optional<PlayerModel> optionalPlayerModel = this.whitelistedPlayers.stream()
-                .filter(playerModel -> playerModel.getUuid().equals(playerProfile.getUUID()))
-                .findFirst();
-        optionalPlayerModel.ifPresent(whitelistedPlayers::remove);
-        booleanPlayerProfileBiConsumer.accept(true, playerProfile);
+        BungeeWhitelistPlugin.getRequestExecutor().execute(() -> {
+            final PlayerProfile playerProfile = mojangService.getPlayerProfile(name);
+            if (playerProfile == null) {
+                booleanPlayerProfileBiConsumer.accept(false, null);
+                return;
+            }
+            whitelistRepository.removePlayerFromWhitelist(playerProfile.toPlayerModel());
+            jedisManager.publish("MULTI_PROXY_WHITELIST:REMOVE_PLAYER", playerProfile.toPlayerModel().toJson(), true);
+            final Optional<PlayerModel> optionalPlayerModel = this.whitelistedPlayers.stream()
+                    .filter(playerModel -> playerModel.getUuid().equals(playerProfile.getUUID()))
+                    .findFirst();
+            optionalPlayerModel.ifPresent(whitelistedPlayers::remove);
+            booleanPlayerProfileBiConsumer.accept(true, playerProfile);
+        });
     }
 
     private void subscribeToAddPlayer() {
@@ -79,6 +84,7 @@ public class WhitelistService {
             if (playerModel == null) {
                 return;
             }
+            System.out.println("MULTI_PROXY_WHITELIST:ADD_PLAYER >> " + playerModel.toJson());
             this.whitelistedPlayers.stream()
                     .filter(p -> p.getUuid().equals(playerModel.getUuid()))
                     .findFirst()
@@ -93,6 +99,7 @@ public class WhitelistService {
             if (playerModel == null) {
                 return;
             }
+            System.out.println("MULTI_PROXY_WHITELIST:REMOVE_PLAYER >> " + playerModel.toJson());
             this.whitelistedPlayers.stream()
                     .filter(p -> p.getUuid().equals(playerModel.getUuid()))
                     .findFirst()
@@ -102,16 +109,17 @@ public class WhitelistService {
 
     public void activateWhitelist() {
         this.whitelistStatus = true;
-        jedisManager.publish("MULTI_PROXY_WHITELIST:CHANGE_WHITELIST", "true");
+        jedisManager.publish("MULTI_PROXY_WHITELIST:CHANGE_WHITELIST", "true", true);
     }
 
     public void deactivateWhitelist() {
         this.whitelistStatus = false;
-        jedisManager.publish("MULTI_PROXY_WHITELIST:CHANGE_WHITELIST", "false");
+        jedisManager.publish("MULTI_PROXY_WHITELIST:CHANGE_WHITELIST", "false", true);
     }
 
     private void subscribeToWhitelistChange() {
         jedisManager.subscribe("MULTI_PROXY_WHITELIST:CHANGE_WHITELIST", s -> {
+            System.out.println("MULTI_PROXY_WHITELIST:CHANGE_WHITELIST >> " + s);
             if (s.equals("true")) {
                 this.whitelistStatus = true;
             } else if (s.equals("false")) {

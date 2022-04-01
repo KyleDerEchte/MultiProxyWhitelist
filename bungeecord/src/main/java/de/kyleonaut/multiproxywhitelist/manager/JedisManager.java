@@ -1,12 +1,12 @@
 package de.kyleonaut.multiproxywhitelist.manager;
 
+import de.kyleonaut.multiproxywhitelist.BungeeWhitelistPlugin;
 import lombok.Cleanup;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -26,7 +26,7 @@ public class JedisManager {
     }
 
     public void subscribe(String channel, Consumer<String> messageConsumer) {
-        CompletableFuture.runAsync(() -> {
+        BungeeWhitelistPlugin.getRequestExecutor().execute(() -> {
             @Cleanup final Jedis jedis = getJedis();
             jedis.subscribe(new JedisPubSub() {
                 @Override
@@ -37,11 +37,16 @@ public class JedisManager {
         });
     }
 
-    public void publish(String channel, String message) {
-        CompletableFuture.runAsync(() -> {
+    public void publish(String channel, String message, boolean async) {
+        if (async) {
+            BungeeWhitelistPlugin.getRequestExecutor().execute(() -> {
+                @Cleanup final Jedis jedis = jedisPool.getResource();
+                jedis.publish(channel, message);
+            });
+        } else {
             @Cleanup final Jedis jedis = jedisPool.getResource();
             jedis.publish(channel, message);
-        });
+        }
     }
 
     private Jedis getJedis() {

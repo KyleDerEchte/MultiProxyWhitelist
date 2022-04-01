@@ -12,7 +12,7 @@ import java.sql.SQLException;
 @RequiredArgsConstructor
 public class DatabaseManager {
     private final String url;
-    private final String host;
+    private final String user;
     private final String password;
     private Connection connection;
 
@@ -37,7 +37,7 @@ public class DatabaseManager {
     private Connection createConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            return DriverManager.getConnection(this.url, this.host, this.password);
+            return DriverManager.getConnection(this.url, this.user, this.password);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }

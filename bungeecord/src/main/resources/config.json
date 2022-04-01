@@ -1,0 +1,8 @@
+{
+  "mysqlUrl": "jdbc:mysql://<host>:<port>/<database>",
+  "mysqlUser": "",
+  "mysqlPassword": "",
+  "redisHost": "",
+  "redisPort": 6379,
+  "redisPassword": ""
+}
