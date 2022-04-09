@@ -10,7 +10,6 @@
     <version>1.0.0</version>
     <modules>
         <module>bungeecord</module>
-        <module>velocity</module>
     </modules>
 
     <properties>
