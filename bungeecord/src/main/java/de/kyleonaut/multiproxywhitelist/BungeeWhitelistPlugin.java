@@ -48,7 +48,7 @@ public class BungeeWhitelistPlugin extends Plugin {
         );
         final MojangRepository mojangRepository = new MojangRepository(mojangRequests);
         final WhitelistRepository whitelistRepository = new WhitelistRepository(databaseManager.getConnection());
-        final MojangService mojangService = new MojangService(mojangRepository);
+        final MojangService mojangService = new MojangService(mojangRepository, whitelistRepository);
         final WhitelistService whitelistService = new WhitelistService(mojangService, whitelistRepository, jedisManager);
         whitelistService.init();
 

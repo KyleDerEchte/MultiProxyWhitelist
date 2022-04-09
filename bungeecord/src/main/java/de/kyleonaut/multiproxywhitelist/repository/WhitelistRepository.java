@@ -30,6 +30,25 @@ public class WhitelistRepository {
         }
     }
 
+    public PlayerModel getPlayer(String name) {
+        try {
+            @Cleanup final PreparedStatement ps = this.connection.prepareStatement(
+                    "SELECT * FROM players WHERE name LIKE ?;"
+            );
+            ps.setString(1, name);
+            @Cleanup final ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                final PlayerModel playerModel = new PlayerModel();
+                playerModel.setName(rs.getString("name"));
+                playerModel.setUuid(UUID.fromString(rs.getString("uuid")));
+                return playerModel;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<PlayerModel> getWhitelistedPlayers() {
         try {
             @Cleanup final PreparedStatement ps = this.connection.prepareStatement(

@@ -36,4 +36,11 @@ public class PlayerModel {
         }
         return null;
     }
+
+    public PlayerProfile toPlayerProfile() {
+        final PlayerProfile playerProfile = new PlayerProfile();
+        playerProfile.setId(this.uuid.toString().replace("-", ""));
+        playerProfile.setName(this.name);
+        return playerProfile;
+    }
 }
